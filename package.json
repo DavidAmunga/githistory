@@ -11,5 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "simple-git": "^3.24.0"
+  },
+  "bin": {
+    "git-stats": "./index.js"
   }
 }
