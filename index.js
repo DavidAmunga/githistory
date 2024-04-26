@@ -1,15 +1,16 @@
 #!/usr/bin/env node
-
-import simpleGit from "simple-git";
-import path from "path";
 import { execSync } from "child_process";
 import chalk from "chalk";
 
 function execCommand(command) {
   try {
-    return execSync(command).toString().trim();
+    // Use execSync and specify shell option to better control how commands are executed
+    const result = execSync(command, { shell: "/bin/sh" }).toString().trim();
+    if (!result) throw new Error("No output returned.");
+    return result;
   } catch (error) {
-    console.error(chalk.red("Error executing command:"), command);
+    console.error(chalk.red(`Error executing command: ${command}`));
+    console.error(chalk.red(`Error message: ${error.message}`));
     return null;
   }
 }
@@ -46,6 +47,8 @@ function formatDate(dateStr) {
 }
 
 function getCommitDetails(commitHash) {
+  // Ensure that commitHash does not contain invalid characters or multiple hashes
+  if (commitHash.includes("\n")) commitHash = commitHash.split("\n")[0]; // Take only the first hash if there are multiple
   const command = `git show -s --format="%ci %h %an" ${commitHash}`;
   const output = execCommand(command);
   if (!output) {
@@ -54,19 +57,19 @@ function getCommitDetails(commitHash) {
     );
     return null;
   }
-  return output.split("\n")[0];
+  return output;
 }
 
 function getGitHistory() {
   // Get first commit
   const firstCommitHash = execCommand("git rev-list --max-parents=0 HEAD");
-  const firstCommitDetails = getCommitDetails(firstCommitHash);
+  const firstCommitDetails = getCommitDetails(firstCommitHash.trim());
 
   const [firstCommitDate] = firstCommitDetails.split(" ");
 
   // Get last commit
   const lastCommitHash = execCommand("git rev-list -n 1 HEAD");
-  const lastCommitDetails = getCommitDetails(lastCommitHash);
+  const lastCommitDetails = getCommitDetails(lastCommitHash.trim());
   const [lastCommitDate] = lastCommitDetails.split(" ");
 
   // Duration and total commits
