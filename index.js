@@ -3,7 +3,7 @@
 const simpleGit = require("simple-git");
 const git = simpleGit();
 
-async function getGitStats() {
+async function getGitHistory() {
   const logSummary = await git.log();
   const firstCommit = logSummary.all[logSummary.total - 1];
   const lastCommit = logSummary.latest;
@@ -23,4 +23,4 @@ async function getGitStats() {
   console.log(`Total Number of Commits: ${logSummary.total}`);
 }
 
-getGitStats().catch(console.error);
+getGitHistory().catch(console.error);

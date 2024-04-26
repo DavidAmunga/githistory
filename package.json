@@ -1,5 +1,5 @@
 {
-  "name": "gitstats",
+  "name": "githistory",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -13,6 +13,6 @@
     "simple-git": "^3.24.0"
   },
   "bin": {
-    "git-stats": "./index.js"
+    "githistory": "./index.js"
   }
 }
