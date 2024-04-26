@@ -45,16 +45,37 @@ function formatDate(dateStr) {
   });
 }
 
+function getCommitDetails(commitHash) {
+  const command = `git show -s --format="%ci %h %an" ${commitHash}`;
+  const output = execCommand(command);
+  if (!output) {
+    console.error(
+      chalk.red("Failed to get commit details for hash: " + commitHash)
+    );
+    return null;
+  }
+  // Split the output by newline
+  const lines = output.split("\n");
+  if (lines.length > 1) {
+    console.log(
+      chalk.yellow(
+        `Warning: Multiple commit details found; using only the first one.`
+      )
+    );
+  }
+  return lines[0]; // Return only the first line, regardless of how many lines there are
+}
+
 function getGitHistory() {
   // Get first commit
   const firstCommitHash = execCommand("git rev-list --max-parents=0 HEAD");
-  const firstCommitDetails = execCommand(
-    `git show -s --format="%ci %h %an" ${firstCommitHash}`
-  );
+  const firstCommitDetails = getCommitDetails(firstCommitHash);
+
   const [firstCommitDate] = firstCommitDetails.split(" ");
 
   // Get last commit
-  const lastCommitDetails = execCommand('git log -1 --format="%ci %h %an"');
+  const lastCommitHash = execCommand("git rev-list -n 1 HEAD");
+  const lastCommitDetails = getCommitDetails(lastCommitHash);
   const [lastCommitDate] = lastCommitDetails.split(" ");
 
   // Duration and total commits
@@ -88,16 +109,16 @@ function getGitHistory() {
   );
 
   console.log("..............................");
-  console.log(chalk.white(`🚀 First Commit: ${formatDate(firstCommitDate)}`));
-  console.log(chalk.white(`🏁 Last Commit: ${formatDate(lastCommitDate)}`));
+  console.log(chalk.green(`🚀 First Commit: ${formatDate(firstCommitDate)}`));
+  console.log(chalk.yellow(`🏁 Last Commit: ${formatDate(lastCommitDate)}`));
   console.log("..............................");
   console.log(
     chalk.white(
       `⏳ Duration Between First and Last Commit: ${durationDays} days`
     )
   );
+  console.log("..............................");
   if (topContributors.length > 0) {
-    console.log("..............................");
     console.log(chalk.white("🏆 Top 5 Contributors 🏆"));
     console.log(chalk.white(topContributors));
     console.log("..............................");
