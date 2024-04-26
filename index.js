@@ -54,16 +54,7 @@ function getCommitDetails(commitHash) {
     );
     return null;
   }
-  // Split the output by newline
-  const lines = output.split("\n");
-  if (lines.length > 1) {
-    console.log(
-      chalk.yellow(
-        `Warning: Multiple commit details found; using only the first one.`
-      )
-    );
-  }
-  return lines[0]; // Return only the first line, regardless of how many lines there are
+  return output.split("\n")[0];
 }
 
 function getGitHistory() {
