@@ -1,73 +1,107 @@
 #!/usr/bin/env node
 
 import simpleGit from "simple-git";
-import moment from "moment";
+import path from "path";
+import { execSync } from "child_process";
 import chalk from "chalk";
 
-const git = simpleGit();
-
-async function getGitHistory() {
-  const logSummary = await git.log();
-  const firstCommit = logSummary.all[logSummary.total - 1];
-  const lastCommit = logSummary.latest;
-  const totalCommits = logSummary.total;
-
-  const firstDate = moment(new Date(firstCommit.date));
-  const lastDate = moment(new Date(lastCommit.date));
-  const durationDays = lastDate.diff(firstDate, "days");
-
-  const contributors = await git.raw([
-    "shortlog",
-    "-s",
-    "-n",
-    "--all",
-    "--no-merges",
-  ]);
-  const contributorList = contributors.split("\n").filter(Boolean);
-  const totalContributors = contributorList.length;
-  const topContributors = contributorList
-    .slice(0, 5)
-    .map((line) => line.trim());
-
-  const monthlyCommits = await git.raw([
-    "rev-list",
-    "--count",
-    '--since="1 month ago"',
-  ]);
-
-  const repoSize = await git.raw(["count-objects", "-vH"]);
-
-  console.log(chalk.blue("Git Repository Statistics:"));
-  console.log(
-    chalk.green(
-      `First Commit: ${firstCommit.hash} by ${
-        firstCommit.author_name
-      } on ${firstDate.format("MMMM Do YYYY, h:mm:ss a")}`
-    )
-  );
-  console.log(
-    chalk.green(
-      `Last Commit: ${lastCommit.hash} by ${
-        lastCommit.author_name
-      } on ${lastDate.format("MMMM Do YYYY, h:mm:ss a")}`
-    )
-  );
-  console.log(
-    chalk.magenta(
-      `Duration Between First and Last Commit: ${durationDays} days`
-    )
-  );
-  console.log(chalk.magenta(`Total Number of Commits: ${totalCommits}`));
-  console.log(
-    chalk.yellow(`Total Number of Contributors: ${totalContributors}`)
-  );
-  console.log(
-    chalk.yellow(`Top 5 Contributors: ${topContributors.join(", ")}`)
-  );
-  console.log(
-    chalk.cyan(`Average Commits Per Month: ${monthlyCommits.trim()}`)
-  );
-  console.log(chalk.cyan(`Repository Size: ${repoSize.split("\n")[0]}`));
+function execCommand(command) {
+  try {
+    return execSync(command).toString().trim();
+  } catch (error) {
+    console.error(chalk.red("Error executing command:"), command);
+    return null;
+  }
 }
 
-getGitHistory().catch(console.error);
+function getRepositoryName() {
+  const remoteUrl = execCommand("git config --get remote.origin.url");
+  if (!remoteUrl) {
+    console.error(chalk.red('No remote named "origin" found.'));
+    return "unknown"; // Return a default or indicate unknown.
+  }
+
+  // This regular expression is designed to capture the repository name
+  // from typical Git URLs (both SSH and HTTPS formats).
+  const repoNameMatch = remoteUrl.match(/\/([^\/]+?)(\.git)?$/);
+  if (repoNameMatch) {
+    return repoNameMatch[1]; // The repository name without .git
+  } else {
+    console.error(chalk.red("Failed to parse repository name."));
+    return "unknown"; // Return a default or indicate unknown.
+  }
+}
+// Function to format date
+function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function getGitHistory() {
+  // Get first commit
+  const firstCommitHash = execCommand("git rev-list --max-parents=0 HEAD");
+  const firstCommitDetails = execCommand(
+    `git show -s --format="%ci %h %an" ${firstCommitHash}`
+  );
+  const [firstCommitDate] = firstCommitDetails.split(" ");
+
+  // Get last commit
+  const lastCommitDetails = execCommand('git log -1 --format="%ci %h %an"');
+  const [lastCommitDate] = lastCommitDetails.split(" ");
+
+  // Duration and total commits
+  const startDate = new Date(firstCommitDate);
+  const endDate = new Date(lastCommitDate);
+  const durationDays = Math.round((endDate - startDate) / (1000 * 3600 * 24));
+
+  const numCommits = execCommand("git rev-list --count HEAD");
+  const numBranches = execCommand("git branch | wc -l");
+  const topContributors = execCommand("git shortlog -sn -e | head -5");
+  const numPullRequests = execCommand(
+    'git log --oneline --grep="Merge pull request" | wc -l'
+  );
+  const numContributors = execCommand("git shortlog -sn | wc -l");
+
+  // Display formatted results
+
+  console.log(
+    chalk.yellow.bold.underline(
+      `\n🔢 Repository History for: ${getRepositoryName()}!\n`
+    )
+  );
+  console.log("..............................");
+  console.log(chalk.white(`🔢 Total Number of Commits: ${numCommits}`));
+  console.log(
+    chalk.white(`📩 Total Number of Pull Requests : ${numPullRequests}`)
+  );
+  console.log(chalk.white(`🌿 Total Number of Branches: ${numBranches}`));
+  console.log(
+    chalk.white(`👥 Total Number of Contributors: ${numContributors}`)
+  );
+
+  console.log("..............................");
+  console.log(chalk.white(`🚀 First Commit: ${formatDate(firstCommitDate)}`));
+  console.log(chalk.white(`🏁 Last Commit: ${formatDate(lastCommitDate)}`));
+  console.log("..............................");
+  console.log(
+    chalk.white(
+      `⏳ Duration Between First and Last Commit: ${durationDays} days`
+    )
+  );
+  if (topContributors.length > 0) {
+    console.log("..............................");
+    console.log(chalk.white("🏆 Top 5 Contributors 🏆"));
+    console.log(chalk.white(topContributors));
+    console.log("..............................");
+  }
+}
+
+getGitHistory();
