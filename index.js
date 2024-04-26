@@ -79,7 +79,6 @@ function getGitHistory() {
 
   const numCommits = execCommand("git rev-list --count HEAD");
   const numBranches = execCommand("git branch | wc -l");
-  const topContributors = execCommand("git shortlog -sn -e | head -5");
   const numPullRequests = execCommand(
     'git log --oneline --grep="Merge pull request" | wc -l'
   );
@@ -112,11 +111,6 @@ function getGitHistory() {
     )
   );
   console.log("..............................");
-  if (topContributors.length > 0) {
-    console.log(chalk.white("🏆 Top 5 Contributors 🏆"));
-    console.log(chalk.white(topContributors));
-    console.log("..............................");
-  }
 }
 
 getGitHistory();
