@@ -6,7 +6,7 @@ function execCommand(command) {
   const verbose = process.argv.includes("--verbose");
 
   try {
-    const result = execSync(command, { shell: "/bin/sh" }).toString().trim();
+    const result = execSync(command, { shell: "/bin/bash" }).toString().trim();
     if (verbose) {
       console.log(chalk.blue(`Command: ${command}`)); // Debug: log command
       console.log(chalk.blue(`Output: ${result}`)); // Debug: log raw output
