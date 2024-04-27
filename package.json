@@ -1,6 +1,6 @@
 {
   "name": "@damunga/githistory",
-  "version": "1.3.7",
+  "version": "1.3.8",
   "description": "A CLI tool to fetch high-level stats from a local Git repository.",
   "type": "module",
   "scripts": {

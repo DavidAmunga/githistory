@@ -56,8 +56,9 @@ function formatDuration(startDate, endDate) {
   const totalMillis = endDate - startDate;
 
   // Define the lengths of time units in milliseconds
+  // Define the lengths of time units in milliseconds
   const second = 1000;
-  const minute = 1000 * 60;
+  const minute = second * 60;
   const hour = minute * 60;
   const day = hour * 24;
   const week = day * 7;
@@ -66,12 +67,14 @@ function formatDuration(startDate, endDate) {
 
   // Calculate the time components
   const years = Math.floor(totalMillis / year);
-  const months = Math.floor(totalMillis / month);
+  const months = Math.floor((totalMillis % year) / month);
   const weeks = Math.floor((totalMillis % month) / week);
   const days = Math.floor((totalMillis % week) / day);
   const hours = Math.floor((totalMillis % day) / hour);
   const minutes = Math.floor((totalMillis % hour) / minute);
   const seconds = Math.floor((totalMillis % minute) / second);
+
+
 
   // Create an array of formatted time components that are non-zero
   const parts = [];
