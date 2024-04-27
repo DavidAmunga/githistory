@@ -119,7 +119,7 @@ function getGitHistory() {
   const endDate = new Date(lastCommitDate);
 
   const numCommits = execCommand("git rev-list --count HEAD");
-  const numBranches = execCommand("git log | git branch | wc -l");
+  const numBranches = execCommand("git log | git branch -a | wc -l");
   const numPullRequests = execCommand(
     'git log --oneline --grep="Merge pull request" | wc -l'
   );
