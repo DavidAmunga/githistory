@@ -6,7 +6,7 @@ function execCommand(command) {
   const verbose = process.argv.includes("--verbose");
 
   try {
-    const result = execSync(command, { shell: "/bin/bash" }).toString().trim();
+    const result = execSync(command, { shell: "/bin/sh" }).toString().trim();
     if (verbose) {
       console.log(chalk.blue(`Command: ${command}`)); // Debug: log command
       console.log(chalk.blue(`Output: ${result}`)); // Debug: log raw output
@@ -51,6 +51,36 @@ function formatDate(dateStr) {
   });
 }
 
+function formatDuration(startDate, endDate) {
+  // Calculate the total difference in milliseconds
+  const totalMillis = endDate - startDate;
+
+  // Define the lengths of time units in milliseconds
+  const minute = 1000 * 60;
+  const hour = minute * 60;
+  const day = hour * 24;
+  const week = day * 7;
+  const month = day * 30; // Approximation of a month
+
+  // Calculate the time components
+  const months = Math.floor(totalMillis / month);
+  const weeks = Math.floor((totalMillis % month) / week);
+  const days = Math.floor((totalMillis % week) / day);
+  const hours = Math.floor((totalMillis % day) / hour);
+  const minutes = Math.floor((totalMillis % hour) / minute);
+
+  // Create an array of formatted time components that are non-zero
+  const parts = [];
+  if (months) parts.push(`${months} month${months > 1 ? "s" : ""}`);
+  if (weeks) parts.push(`${weeks} week${weeks > 1 ? "s" : ""}`);
+  if (days) parts.push(`${days} day${days > 1 ? "s" : ""}`);
+  if (hours) parts.push(`${hours} hour${hours > 1 ? "s" : ""}`);
+  if (minutes) parts.push(`${minutes} minute${minutes > 1 ? "s" : ""}`);
+
+  // Format the output by joining the parts with commas
+  return parts.join(", ");
+}
+
 function getCommitDetails(commitHash) {
   // Ensure that commitHash does not contain invalid characters or multiple hashes
   if (commitHash.includes("\n")) commitHash = commitHash.split("\n")[0]; // Take only the first hash if there are multiple
@@ -80,14 +110,13 @@ function getGitHistory() {
   // Duration and total commits
   const startDate = new Date(firstCommitDate);
   const endDate = new Date(lastCommitDate);
-  const durationDays = Math.round((endDate - startDate) / (1000 * 3600 * 24));
 
   const numCommits = execCommand("git rev-list --count HEAD");
   const numBranches = execCommand("git branch | wc -l");
   const numPullRequests = execCommand(
     'git log --oneline --grep="Merge pull request" | wc -l'
   );
-  const numContributors = execCommand("git shortlog -sn | wc -l");
+  const numContributors = execCommand("git log | git shortlog -sn | wc -l");
 
   // Display formatted results
 
@@ -103,7 +132,7 @@ function getGitHistory() {
   );
   console.log(chalk.white(`🌿 Total Number of Branches: ${numBranches}`));
   console.log(
-    chalk.white(`👥 Total Number of Contributors: ${numContributors}`)
+    chalk.white(`👥 Total Number of Contributors: ${numContributors.length}`)
   );
 
   console.log("..............................");
@@ -112,7 +141,10 @@ function getGitHistory() {
   console.log("..............................");
   console.log(
     chalk.white(
-      `⏳ Duration Between First and Last Commit: ${durationDays} days`
+      `⏳ Duration Between First and Last Commit: ${formatDuration(
+        startDate,
+        endDate
+      )}`
     )
   );
   console.log("..............................");
