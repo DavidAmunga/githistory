@@ -74,8 +74,6 @@ function formatDuration(startDate, endDate) {
   const minutes = Math.floor((totalMillis % hour) / minute);
   const seconds = Math.floor((totalMillis % minute) / second);
 
-
-
   // Create an array of formatted time components that are non-zero
   const parts = [];
   if (years) parts.push(`${years} year${years > 1 ? "s" : ""}`);
@@ -121,7 +119,7 @@ function getGitHistory() {
   const endDate = new Date(lastCommitDate);
 
   const numCommits = execCommand("git rev-list --count HEAD");
-  const numBranches = execCommand("git branch | wc -l");
+  const numBranches = execCommand("git log | git branch | wc -l");
   const numPullRequests = execCommand(
     'git log --oneline --grep="Merge pull request" | wc -l'
   );
