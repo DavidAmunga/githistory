@@ -56,26 +56,32 @@ function formatDuration(startDate, endDate) {
   const totalMillis = endDate - startDate;
 
   // Define the lengths of time units in milliseconds
+  const second = 1000;
   const minute = 1000 * 60;
   const hour = minute * 60;
   const day = hour * 24;
   const week = day * 7;
   const month = day * 30; // Approximation of a month
+  const year = day * 365; // Approximation of a year
 
   // Calculate the time components
+  const years = Math.floor(totalMillis / year);
   const months = Math.floor(totalMillis / month);
   const weeks = Math.floor((totalMillis % month) / week);
   const days = Math.floor((totalMillis % week) / day);
   const hours = Math.floor((totalMillis % day) / hour);
   const minutes = Math.floor((totalMillis % hour) / minute);
+  const seconds = Math.floor((totalMillis % minute) / second);
 
   // Create an array of formatted time components that are non-zero
   const parts = [];
+  if (years) parts.push(`${years} year${years > 1 ? "s" : ""}`);
   if (months) parts.push(`${months} month${months > 1 ? "s" : ""}`);
   if (weeks) parts.push(`${weeks} week${weeks > 1 ? "s" : ""}`);
   if (days) parts.push(`${days} day${days > 1 ? "s" : ""}`);
   if (hours) parts.push(`${hours} hour${hours > 1 ? "s" : ""}`);
   if (minutes) parts.push(`${minutes} minute${minutes > 1 ? "s" : ""}`);
+  if (seconds) parts.push(`${seconds} second${seconds > 1 ? "s" : ""}`);
 
   // Format the output by joining the parts with commas
   return parts.join(", ");
@@ -132,7 +138,7 @@ function getGitHistory() {
   );
   console.log(chalk.white(`🌿 Total Number of Branches: ${numBranches}`));
   console.log(
-    chalk.white(`👥 Total Number of Contributors: ${numContributors.length}`)
+    chalk.white(`👥 Total Number of Contributors: ${numContributors}`)
   );
 
   console.log("..............................");
