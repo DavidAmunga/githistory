@@ -3,9 +3,14 @@ import { execSync } from "child_process";
 import chalk from "chalk";
 
 function execCommand(command) {
+  const verbose = process.argv.includes("--verbose");
+
   try {
-    // Use execSync and specify shell option to better control how commands are executed
     const result = execSync(command, { shell: "/bin/sh" }).toString().trim();
+    if (verbose) {
+      console.log(chalk.blue(`Command: ${command}`)); // Debug: log command
+      console.log(chalk.blue(`Output: ${result}`)); // Debug: log raw output
+    }
     if (!result) throw new Error("No output returned.");
     return result;
   } catch (error) {
